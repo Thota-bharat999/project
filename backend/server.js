@@ -104,7 +104,9 @@ server.listen(PORT, () => {
 🔌 WebSocket: ws://localhost:${PORT}
   `);
 });
-
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
     console.error(`Port ${PORT} is already in use. Please stop the process using this port or set a different PORT environment variable.`);
