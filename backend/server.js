@@ -35,47 +35,58 @@ const io = new Server(server, {
 setIO(io);
 setupSocketHandlers(io);
 
-// ─── Database ────────────────────────────────────────────────────────────────
+// ─── Database ─────────────────────────────────────────
 connectDB();
 
-// ─── Middleware ──────────────────────────────────────────────────────────────
-// Change this line:
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }))
+// ─── Middleware ───────────────────────────────────────
 
-// To this:
+// Helmet fix (no change needed)
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
-    contentSecurityPolicy: false, // CSP blocks media-src by default — disable it
+    contentSecurityPolicy: false,
   })
-)
+);
 
+// ✅ FIXED CORS (MAIN CHANGE)
 const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
+  'http://localhost:5173',
   'http://localhost:5174',
-  'https://videoassignmenet.netlify.app'
-]
+  'https://videoassignmenet.netlify.app',
+];
 
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
+
+// ✅ Handle preflight requests
+app.options('*', cors());
 
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Rate limiting
+// ─── Rate limiting ────────────────────────────────────
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 200,
   message: { success: false, message: 'Too many requests. Please try again later.' },
 });
 app.use('/api/', limiter);
 
-// Stricter limiter for auth routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
@@ -84,22 +95,32 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
-// ─── Routes ─────────────────────────────────────────────────────────────────
+// ─── Routes ───────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/users', userRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'Server is running', timestamp: new Date().toISOString() });
+  res.json({
+    success: true,
+    message: 'Server is running',
+    timestamp: new Date().toISOString(),
+  });
 });
 
-// ─── Error Handling ──────────────────────────────────────────────────────────
+// Root route
+app.get('/', (req, res) => {
+  res.send('API is running...');
+});
+
+// ─── Error Handling ───────────────────────────────────
 app.use(notFound);
 app.use(errorHandler);
 
-// ─── Start Server ────────────────────────────────────────────────────────────
+// ─── Start Server ─────────────────────────────────────
 const PORT = process.env.PORT || 4000;
+
 server.listen(PORT, () => {
   console.log(`
 🚀 Server running in ${process.env.NODE_ENV || 'development'} mode
@@ -107,12 +128,12 @@ server.listen(PORT, () => {
 🔌 WebSocket: ws://localhost:${PORT}
   `);
 });
-app.get("/", (req, res) => {
-  res.send("API is running...");
-});
+
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use. Please stop the process using this port or set a different PORT environment variable.`);
+    console.error(
+      `Port ${PORT} is already in use. Please stop the process or use a different PORT.`
+    );
     process.exit(1);
   }
   throw err;
