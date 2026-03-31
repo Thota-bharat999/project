@@ -1,9 +1,13 @@
 import axios from 'axios'
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://project-lzmm.onrender.com/api'
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: BASE_URL,
   timeout: 30000,
 })
+if (!import.meta.env.VITE_API_URL) {
+  console.warn('[VideoVault] VITE_API_URL not set, using fallback:', BASE_URL)
+}
 
 // Attach JWT token to every request
 api.interceptors.request.use((config) => {
