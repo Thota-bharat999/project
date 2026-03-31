@@ -139,7 +139,31 @@ MAX_FILE_SIZE=524288000        # 500MB in bytes
 CLIENT_URL=http://localhost:5173
 ```
 
----
+## Register
+
+![Register](./assets/Register.png)
+
+## Register
+
+![Login](./assets/Login.png)
+
+##  Dashboard
+
+![Dashboard](./assets/dashboard.png)
+
+
+## 📤 Upload Page
+
+![Upload](./assets/upload.png)
+
+##  Player
+
+![VideoLibrary](./assets/VideoLibrary.png)
+
+## User Management
+
+![UserManagement](./assets/UserManagement.png)
+
 
 ## API Documentation
 
@@ -281,11 +305,13 @@ Tests cover: user registration, login, JWT authentication, protected routes, vid
 ## Deployment
 
 ### Backend (e.g. Railway, Render, Heroku)
+Backend Url: https://project-lzmm.onrender.com/api
 1. Set all environment variables
 2. `npm start`
 3. Ensure MongoDB Atlas URI is set
 
 ### Frontend (e.g. Vercel, Netlify)
+Netlify Link: https://videoassignmenet.netlify.app/login
 1. Set `VITE_API_URL` if backend is on a different domain
 2. Update `vite.config.js` proxy or use absolute API URL
 3. `npm run build` → deploy `dist/`
